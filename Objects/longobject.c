@@ -253,7 +253,7 @@ PyLong_FromLong(long ival)
     int ndigits = 0;
     int sign;
 
-    CHECK_SMALL_INT(ival);
+    // CHECK_SMALL_INT(ival);
 
     if (ival < 0) {
         /* negate: can't write this as abs_ival = -ival since that
@@ -1084,7 +1084,7 @@ PyLong_FromLongLong(long long ival)
     int ndigits = 0;
     int negative = 0;
 
-    CHECK_SMALL_INT(ival);
+    // CHECK_SMALL_INT(ival);
     if (ival < 0) {
         /* avoid signed overflow on negation;  see comments
            in PyLong_FromLong above. */
@@ -1156,7 +1156,7 @@ PyLong_FromSsize_t(Py_ssize_t ival)
     int ndigits = 0;
     int negative = 0;
 
-    CHECK_SMALL_INT(ival);
+    // CHECK_SMALL_INT(ival);
     if (ival < 0) {
         /* avoid signed overflow when ival = SIZE_T_MIN */
         abs_ival = (size_t)(-1-ival)+1;

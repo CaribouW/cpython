@@ -351,6 +351,19 @@ PyDoc_STRVAR(builtin_id__doc__,
 #define BUILTIN_ID_METHODDEF    \
     {"id", (PyCFunction)builtin_id, METH_O, builtin_id__doc__},
 
+PyDoc_STRVAR(builtin_id_deref__doc__,
+"id_deref($module, obj, /)\n"
+"--\n"
+"\n"
+"Return the pointer from a id().\n"
+"\n"
+"This is guaranteed to be unique among simultaneously existing objects.\n"
+"(CPython uses the object\'s memory address.)");
+
+#define BUILTIN_ID_DEREF_METHODDEF    \
+    {"id_deref", (PyCFunction)builtin_id_deref, METH_O, builtin_id_deref__doc__},
+
+
 PyDoc_STRVAR(builtin_setattr__doc__,
 "setattr($module, obj, name, value, /)\n"
 "--\n"

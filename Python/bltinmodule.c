@@ -1215,6 +1215,15 @@ builtin_id(PyModuleDef *self, PyObject *v)
 {
     return PyLong_FromVoidPtr(v);
 }
+static PyObject *
+builtin_id_deref(PyModuleDef *self, PyObject *v) 
+{
+    void *x;
+    assert(PyLong_Check(v));
+    x = PyLong_AsVoidPtr(v);
+    Py_INCREF(x);
+    return x;
+}
 
 
 /* map object ************************************************************/
@@ -2752,6 +2761,7 @@ static PyMethodDef builtin_methods[] = {
     BUILTIN_HASH_METHODDEF
     BUILTIN_HEX_METHODDEF
     BUILTIN_ID_METHODDEF
+    BUILTIN_ID_DEREF_METHODDEF
     BUILTIN_INPUT_METHODDEF
     BUILTIN_ISINSTANCE_METHODDEF
     BUILTIN_ISSUBCLASS_METHODDEF

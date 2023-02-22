@@ -129,39 +129,50 @@ if PyStringMap is not None:
 
 del d, t
 
-def heapsize(x, memo = {}, _nil=[]):
+def heapsize(x, memo=None, _nil=[]):
+    """Deep copy operation on arbitrary Python objects.
+
+    See the module's __doc__ string for more info.
     """
-    Move all of non-heap memory into heap one
-    TODO: Not supply memo at first
-    """
+
+    if memo is None:
+        memo = {}
     d = id(x)
+    y = memo.get(d, _nil)
+    if y is not _nil:
+        return y
+
     cls = type(x)
+
     copier = _deepcopy_dispatch.get(cls)
     if copier:
         y = copier(x, memo)
-        return y
-    reductor = dispatch_table.get(cls)
-
-    if reductor:
-        rv = reductor(x)
     else:
-        reductor = getattr(x, "__reduce_ex__", None)
-        proto = 4
+        reductor = dispatch_table.get(cls)
         if reductor:
-            rv = reductor(proto) # 
+            rv = reductor(x)
         else:
-            reductor = getattr(x, "__reduce__", None)
+            reductor = getattr(x, "__reduce_ex__", None)
             if reductor:
-                rv = reductor()
+                rv = reductor(4)
             else:
-                raise Error(
-                    "un(deep)copyable object of type %s" % cls)
-    if isinstance(rv, str): # TODO: What's this path means ?
-        y = x
-    else:
-        y = _helper(x,{}, *rv)
+                reductor = getattr(x, "__reduce__", None)
+                if reductor:
+                    rv = reductor()
+                else:
+                    raise Error(
+                        "un(deep)copyable object of type %s" % cls)
+        if isinstance(rv, str):
+            y = x
+        else:
+            y = _helper(x, memo, *rv)
 
+    # If is its own copy, don't memoize.
+    if y is not x:
+        memo[d] = y
+        _keep_alive(x, memo) # Make sure x lives at least as long as d
     return y
+
 
 def _helper(x, memo, func, args,
                  state=None, listiter=None, dictiter=None,
@@ -170,6 +181,8 @@ def _helper(x, memo, func, args,
     if deep and args:
         args = (recur(arg) for arg in args)
     y = func(*args)
+    if deep:
+        memo[id(x)] = y
     if state is not None:
         state = recur(state)
         if deep:

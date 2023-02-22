@@ -1230,11 +1230,19 @@ builtin_id_deref(PyModuleDef *self, PyObject *v)
 /* Heapize: copy all of non-heap memory into heap */
 static PyObject*
 builtin_heapize(PyModuleDef *self, PyObject *obj) {
-    PyTypeObject *type = Py_TYPE(obj);
 
-    printf("get type name %s\n", type->tp_name);
-    Py_INCREF(type);
-    return type;
+    if (PyLong_CheckExact(obj)) {
+        int *p = (int*) malloc(sizeof(int));
+        if (!p) {
+            PyErr_NoMemory();
+            return NULL;
+        }
+        *p = (int) PyLong_AsLong(obj);
+        *p = *p + 1;
+        PyObject *result = PyLong_FromLong(*p);
+        free(p);
+        return result;
+    }
 }
 
 /* map object ************************************************************/

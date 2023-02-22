@@ -134,10 +134,12 @@ def heapsize(x, memo=None, _nil=[]):
 
     See the module's __doc__ string for more info.
     """
-
+    def copy_to_heap(x):
+        return heapize(x)
     if memo is None:
         memo = {}
     d = id(x)
+    # print(x,'<+++++++>id check:', hex(d))
     y = memo.get(d, _nil)
     if y is not _nil:
         return y
@@ -146,7 +148,11 @@ def heapsize(x, memo=None, _nil=[]):
 
     copier = _deepcopy_dispatch.get(cls)
     if copier:
-        y = copier(x, memo)
+        if cls == type:
+            print(x,'<=====>id check:', hex(d), cls, copier)
+            y = copier(x, memo)
+        else:
+            y = copier(x, memo)
     else:
         reductor = dispatch_table.get(cls)
         if reductor:

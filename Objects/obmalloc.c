@@ -1575,13 +1575,14 @@ failed:
 static void *
 _PyObject_Malloc(void *ctx, size_t nbytes)
 {
-    void* ptr = pymalloc_alloc(ctx, nbytes);
-    if (ptr != NULL) {
-        _Py_AllocatedBlocks++;
-        return ptr;
-    }
+    // void* ptr = pymalloc_alloc(ctx, nbytes);
+    // if (ptr != NULL) {
+    //     _Py_AllocatedBlocks++;
+    //     return ptr;
+    // }
 
-    ptr = PyMem_RawMalloc(nbytes);
+    // ptr = PyMem_RawMalloc(nbytes);
+    void* ptr = PyMem_RawMalloc(nbytes);
     if (ptr != NULL) {
         _Py_AllocatedBlocks++;
     }
@@ -1595,14 +1596,15 @@ _PyObject_Calloc(void *ctx, size_t nelem, size_t elsize)
     assert(elsize == 0 || nelem <= (size_t)PY_SSIZE_T_MAX / elsize);
     size_t nbytes = nelem * elsize;
 
-    void *ptr = pymalloc_alloc(ctx, nbytes);
-    if (ptr != NULL) {
-        memset(ptr, 0, nbytes);
-        _Py_AllocatedBlocks++;
-        return ptr;
-    }
+    // void *ptr = pymalloc_alloc(ctx, nbytes);
+    // if (ptr != NULL) {
+    //     memset(ptr, 0, nbytes);
+    //     _Py_AllocatedBlocks++;
+    //     return ptr;
+    // }
 
-    ptr = PyMem_RawCalloc(nelem, elsize);
+    // ptr = PyMem_RawCalloc(nelem, elsize);
+    void* ptr = PyMem_RawCalloc(nelem, elsize);
     if (ptr != NULL) {
         _Py_AllocatedBlocks++;
     }

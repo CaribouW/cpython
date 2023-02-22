@@ -61,7 +61,7 @@ try:
 except ImportError:
     PyStringMap = None
 
-__all__ = ["Error", "copy", "deepcopy"]
+__all__ = ["Error", "copy", "deepcopy", "heapsize"]
 
 def copy(x):
     """Shallow copy operation on arbitrary Python objects.
@@ -129,6 +129,50 @@ if PyStringMap is not None:
 
 del d, t
 
+def _helper(x, memo, func, args):
+    # deep = memo is not None
+    if args:
+        args = (heapsize(arg) for arg in args)
+    y = func(*args)
+    return y
+
+def heapsize(x, memo = {}, _nil=[]):
+    """
+    Move all of non-heap memory into heap one
+    TODO: Not supply memo at first
+    """
+    d = id(x)
+    cls = type(x)
+    copier = _deepcopy_dispatch.get(cls)
+    if copier:
+        y = copier(x, memo)
+        return y
+    reductor = dispatch_table.get(cls)
+
+    if reductor:
+        rv = reductor(x)
+    else:
+        reductor = getattr(x, "__reduce_ex__", None)
+        if reductor:
+            rv = reductor(4)
+        else:
+            reductor = getattr(x, "__reduce__", None)
+            if reductor:
+                rv = reductor()
+            else:
+                raise Error(
+                    "un(deep)copyable object of type %s" % cls)
+    if isinstance(rv, str): # TODO: What's this path ?
+        y = x
+    else:
+        print(type(rv), len(rv))
+        f, _, args = rv
+        # if args:
+            # args = (heapsize(arg) for arg in args)
+        y = f(*args)
+
+    return y
+
 def deepcopy(x, memo=None, _nil=[]):
     """Deep copy operation on arbitrary Python objects.
 
@@ -160,6 +204,7 @@ def deepcopy(x, memo=None, _nil=[]):
             if copier:
                 y = copier(memo)
             else:
+                print(x, 'here')
                 reductor = dispatch_table.get(cls)
                 if reductor:
                     rv = reductor(x)
@@ -177,6 +222,7 @@ def deepcopy(x, memo=None, _nil=[]):
                 if isinstance(rv, str):
                     y = x
                 else:
+                    print(x, *rv)
                     y = _reconstruct(x, memo, *rv)
 
     # If is its own copy, don't memoize.

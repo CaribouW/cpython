@@ -129,13 +129,6 @@ if PyStringMap is not None:
 
 del d, t
 
-def _helper(x, memo, func, args):
-    # deep = memo is not None
-    if args:
-        args = (heapsize(arg) for arg in args)
-    y = func(*args)
-    return y
-
 def heapsize(x, memo = {}, _nil=[]):
     """
     Move all of non-heap memory into heap one
@@ -153,8 +146,9 @@ def heapsize(x, memo = {}, _nil=[]):
         rv = reductor(x)
     else:
         reductor = getattr(x, "__reduce_ex__", None)
+        proto = 4
         if reductor:
-            rv = reductor(4)
+            rv = reductor(proto) # 
         else:
             reductor = getattr(x, "__reduce__", None)
             if reductor:
@@ -162,16 +156,57 @@ def heapsize(x, memo = {}, _nil=[]):
             else:
                 raise Error(
                     "un(deep)copyable object of type %s" % cls)
-    if isinstance(rv, str): # TODO: What's this path ?
+    if isinstance(rv, str): # TODO: What's this path means ?
         y = x
     else:
-        print(type(rv), len(rv))
-        f, _, args = rv
-        # if args:
-            # args = (heapsize(arg) for arg in args)
-        y = f(*args)
+        y = _helper(x,{}, *rv)
 
     return y
+
+def _helper(x, memo, func, args,
+                 state=None, listiter=None, dictiter=None,
+                 recur=heapsize):
+    deep = memo is not None
+    if deep and args:
+        args = (recur(arg) for arg in args)
+    y = func(*args)
+    if state is not None:
+        state = recur(state)
+        if deep:
+            state = recur(state, memo)
+        if hasattr(y, '__setstate__'): # use self-defined setstate
+            y.__setstate__(state)
+        else:
+            if isinstance(state, tuple) and len(state) == 2:
+                state, slotstate = state
+            else:
+                slotstate = None
+            if state is not None:
+                y.__dict__.update(state)
+            if slotstate is not None:
+                for key, value in slotstate.items():
+                    setattr(y, key, value)
+    if listiter is not None:
+        state = recur(listiter)
+        if deep:
+            for item in listiter:
+                item = recur(item, memo)
+                y.append(item)
+        else:
+            for item in listiter:
+                y.append(item)
+    if dictiter is not None:
+        state = recur(dictiter)
+        if deep:
+            for key, value in dictiter:
+                key = recur(key, memo)
+                value = recur(value, memo)
+                y[key] = value
+        else:
+            for key, value in dictiter:
+                y[key] = value
+    return y
+
 
 def deepcopy(x, memo=None, _nil=[]):
     """Deep copy operation on arbitrary Python objects.
@@ -204,7 +239,6 @@ def deepcopy(x, memo=None, _nil=[]):
             if copier:
                 y = copier(memo)
             else:
-                print(x, 'here')
                 reductor = dispatch_table.get(cls)
                 if reductor:
                     rv = reductor(x)
@@ -222,7 +256,6 @@ def deepcopy(x, memo=None, _nil=[]):
                 if isinstance(rv, str):
                     y = x
                 else:
-                    print(x, *rv)
                     y = _reconstruct(x, memo, *rv)
 
     # If is its own copy, don't memoize.

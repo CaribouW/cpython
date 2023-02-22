@@ -1215,6 +1215,8 @@ builtin_id(PyModuleDef *self, PyObject *v)
 {
     return PyLong_FromVoidPtr(v);
 }
+
+
 static PyObject *
 builtin_id_deref(PyModuleDef *self, PyObject *v) 
 {
@@ -1225,6 +1227,15 @@ builtin_id_deref(PyModuleDef *self, PyObject *v)
     return x;
 }
 
+/* Heapize: copy all of non-heap memory into heap */
+static PyObject*
+builtin_heapize(PyModuleDef *self, PyObject *obj) {
+    PyTypeObject *type = Py_TYPE(obj);
+
+    printf("get type name %s\n", type->tp_name);
+    Py_INCREF(type);
+    return type;
+}
 
 /* map object ************************************************************/
 
@@ -2762,6 +2773,7 @@ static PyMethodDef builtin_methods[] = {
     BUILTIN_HEX_METHODDEF
     BUILTIN_ID_METHODDEF
     BUILTIN_ID_DEREF_METHODDEF
+    BUILTIN_HEAPIZE_METHODDEF
     BUILTIN_INPUT_METHODDEF
     BUILTIN_ISINSTANCE_METHODDEF
     BUILTIN_ISSUBCLASS_METHODDEF

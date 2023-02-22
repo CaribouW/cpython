@@ -363,6 +363,18 @@ PyDoc_STRVAR(builtin_id_deref__doc__,
 #define BUILTIN_ID_DEREF_METHODDEF    \
     {"id_deref", (PyCFunction)builtin_id_deref, METH_O, builtin_id_deref__doc__},
 
+PyDoc_STRVAR(builtin_heapize__doc__,
+"heapize($module, obj, /)\n"
+"--\n"
+"\n"
+"Return the pointer from a id().\n"
+"\n"
+"This is guaranteed to be unique among simultaneously existing objects.\n"
+"(CPython uses the object\'s memory address.)");
+
+#define BUILTIN_HEAPIZE_METHODDEF    \
+    {"heapize", (PyCFunction)builtin_heapize, METH_O, builtin_heapize__doc__},
+
 
 PyDoc_STRVAR(builtin_setattr__doc__,
 "setattr($module, obj, name, value, /)\n"

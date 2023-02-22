@@ -3946,6 +3946,7 @@ save(PicklerObject *self, PyObject *obj, int pers_save)
     PyObject *reduce_func = NULL;
     PyObject *reduce_value = NULL;
     int status = 0;
+    printf("The type is %s \n", Py_TYPE(obj)->tp_name);
 
     if (_Pickler_OpcodeBoundary(self) < 0)
         return -1;

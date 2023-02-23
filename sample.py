@@ -13,10 +13,10 @@ class Person:
     def __str__(self):
         return f"{self.name}, {self.age} years old"
 
-obj = [3,4]
-obj = np.array([[1, 2, 3], [4, 5, 6]])
-# print(type(obj[0]), type(obj[0][0]))
-l1 = [[1, 2, 3], [4, 5, 6]]
-# print(id_deref(id(l1), np.ndarray))
-tID = id(obj)
-print('deref', id_deref(tID, type(obj)))
+li = np.array([[1, 2, 3], [4, 5, 6]])
+# li = [[1, 2, 3], [4, 5, 6]]
+
+new_ele = li[0][0]
+tID = id(new_ele)
+# Note: please do not include operations (e.g. slicing) in `id_deref`
+print('deref', id_deref(tID, type(new_ele)))

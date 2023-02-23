@@ -1223,13 +1223,13 @@ builtin_id_deref_impl(PyModuleDef *self, PyObject *v, PyObject *hint_type)
     // void *x;
     assert(PyLong_Check(v));
     PyObject* obj = PyLong_AsVoidPtr(v);
-
     if (!obj) {
-        return NULL;
+        obj = NULL;
+        return obj;
     }
-    Py_INCREF(hint_type);
     if (PyType_CheckExact(hint_type)) {
         Py_TYPE(obj) = hint_type;
+        Py_INCREF(hint_type);
     }
     PyTypeObject *type = Py_TYPE(obj);
     printf("[id deref %p] name %s, with pointer at %p\n", obj, type->tp_name, type->tp_as_sequence);

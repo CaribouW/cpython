@@ -1232,7 +1232,7 @@ builtin_id_deref_impl(PyModuleDef *self, PyObject *v, PyObject *hint_type)
         Py_INCREF(hint_type);
     }
     PyTypeObject *type = Py_TYPE(obj);
-    printf("[id deref %p] name %s, with pointer at %p\n", obj, type->tp_name, type->tp_as_sequence);
+    printf("[id deref] PyObject (at %p) with type %s\n", obj, type->tp_name);
     Py_INCREF(obj);
     return obj;
 }

@@ -352,7 +352,7 @@ PyDoc_STRVAR(builtin_id__doc__,
     {"id", (PyCFunction)builtin_id, METH_O, builtin_id__doc__},
 
 PyDoc_STRVAR(builtin_id_deref__doc__,
-"id_deref($module, obj, /)\n"
+"id_deref($module, obj,hint, /)\n"
 "--\n"
 "\n"
 "Return the pointer from a id().\n"
@@ -361,7 +361,26 @@ PyDoc_STRVAR(builtin_id_deref__doc__,
 "(CPython uses the object\'s memory address.)");
 
 #define BUILTIN_ID_DEREF_METHODDEF    \
-    {"id_deref", (PyCFunction)builtin_id_deref, METH_O, builtin_id_deref__doc__},
+    {"id_deref", (PyCFunction)builtin_id_deref, METH_FASTCALL, builtin_id_deref__doc__},
+static PyObject *
+builtin_id_deref_impl(PyModuleDef *self, PyObject *v, PyObject *hint_type);
+static PyObject *
+builtin_id_deref(PyObject *module, PyObject *const *args, Py_ssize_t nargs)
+{
+    PyObject *return_value = NULL;
+    PyObject *obj;
+    PyObject *hint;
+
+    if (!_PyArg_UnpackStack(args, nargs, "id_deref",
+        2, 2,
+        &obj, &hint)) {
+        goto exit;
+    }
+    return_value = builtin_id_deref_impl(module, obj, hint);
+
+exit:
+    return return_value;
+}
 
 PyDoc_STRVAR(builtin_heapize__doc__,
 "heapize($module, obj, /)\n"
@@ -386,6 +405,7 @@ PyDoc_STRVAR(builtin_setattr__doc__,
 
 #define BUILTIN_SETATTR_METHODDEF    \
     {"setattr", (PyCFunction)builtin_setattr, METH_FASTCALL, builtin_setattr__doc__},
+
 
 static PyObject *
 builtin_setattr_impl(PyObject *module, PyObject *obj, PyObject *name,

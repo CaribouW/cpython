@@ -1220,29 +1220,45 @@ builtin_id(PyModuleDef *self, PyObject *v)
 static PyObject *
 builtin_id_deref(PyModuleDef *self, PyObject *v) 
 {
-    void *x;
+    // void *x;
     assert(PyLong_Check(v));
-    x = PyLong_AsVoidPtr(v);
-    Py_INCREF(x);
-    return x;
+    PyObject* obj = PyLong_AsVoidPtr(v);
+    if (!obj) {
+        return NULL;
+    }
+    PyTypeObject *type = Py_TYPE(obj);
+    printf("[id deref %p] name %s, with pointer at %p\n", obj, type->tp_name, type->tp_as_sequence);
+    Py_INCREF(obj);
+    return obj;
 }
 
 /* Heapize: copy all of non-heap memory into heap */
 static PyObject*
 builtin_heapize(PyModuleDef *self, PyObject *obj) {
+    if (PyType_CheckExact(obj)) {
+        const char *name = ((PyTypeObject *) obj)->tp_name;
+        Py_ssize_t size = Py_TYPE(obj)->tp_basicsize;
+        // printf("name: %s,\tsize: %d, tp_name: %p\n", name, size, 
+            // ((PyTypeObject *) obj)->tp_name);
 
-    if (PyLong_CheckExact(obj)) {
-        int *p = (int*) malloc(sizeof(int));
-        if (!p) {
-            PyErr_NoMemory();
+        PyTypeObject *new_obj = (PyTypeObject *) malloc(size);
+
+        if (new_obj == NULL) {
+            PyErr_SetString(PyExc_RuntimeError, "Failed to allocate memory for new object.");
             return NULL;
         }
-        *p = (int) PyLong_AsLong(obj);
-        *p = *p + 1;
-        PyObject *result = PyLong_FromLong(*p);
-        free(p);
-        return result;
-    }
+
+        memcpy(new_obj, obj, size);
+        Py_INCREF(new_obj);
+        Py_XDECREF(obj);
+
+        return (PyObject *) new_obj;
+    } 
+
+
+
+    Py_INCREF(obj);
+    return obj;
 }
 
 /* map object ************************************************************/

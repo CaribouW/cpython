@@ -134,12 +134,11 @@ def heapsize(x, memo=None, _nil=[]):
 
     See the module's __doc__ string for more info.
     """
-    def copy_to_heap(x):
+    def copy_to_heap(x, memo = None):
         return heapize(x)
     if memo is None:
         memo = {}
     d = id(x)
-    # print(x,'<+++++++>id check:', hex(d))
     y = memo.get(d, _nil)
     if y is not _nil:
         return y
@@ -150,7 +149,7 @@ def heapsize(x, memo=None, _nil=[]):
     if copier:
         if cls == type:
             print(x,'<=====>id check:', hex(d), cls, copier)
-            y = copier(x, memo)
+            y = copy_to_heap(x, memo)
         else:
             y = copier(x, memo)
     else:
@@ -224,6 +223,9 @@ def _helper(x, memo, func, args,
         else:
             for key, value in dictiter:
                 y[key] = value
+    d = id(x)
+    if d >= 0x70e5b5edb9c0:
+        print(x,'<_helper> id check:', hex(d))
     return y
 
 

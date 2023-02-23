@@ -1,5 +1,6 @@
 import copy
 import numpy as np
+import pickle
 
 class Person:
     def __init__(self, name, age):
@@ -15,6 +16,6 @@ class Person:
 obj = [3,4]
 obj = np.array([[1, 2, 3], [4, 5, 6]])
 
-print(hex(id(obj)))
-new_obj = copy.heapsize(obj)
-print(new_obj,hex(id(new_obj)))
+l1 = np.array([[1, 2, 3], [4, 5, 6]])
+pickle.dumps(l1)
+

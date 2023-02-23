@@ -1227,12 +1227,13 @@ builtin_id_deref_impl(PyModuleDef *self, PyObject *v, PyObject *hint_type)
         obj = NULL;
         return obj;
     }
-    if (PyType_CheckExact(hint_type)) {
-        Py_TYPE(obj) = hint_type;
-        Py_INCREF(hint_type);
-    }
+    // if (PyType_CheckExact(hint_type)) {
+        // Py_TYPE(obj) = hint_type;
+        // Py_INCREF(hint_type);
+    // }
     PyTypeObject *type = Py_TYPE(obj);
-    printf("[id deref] PyObject (at %p) with type %s\n", obj, type->tp_name);
+    printf("[id deref] PyObject (at %p) with type %s. Assign hint at %p\n", 
+        obj, type->tp_name, hint_type);
     Py_INCREF(obj);
     return obj;
 }
@@ -1240,30 +1241,24 @@ builtin_id_deref_impl(PyModuleDef *self, PyObject *v, PyObject *hint_type)
 /* Heapize: copy all of non-heap memory into heap */
 static PyObject*
 builtin_heapize(PyModuleDef *self, PyObject *obj) {
-    if (PyType_CheckExact(obj)) {
-        const char *name = ((PyTypeObject *) obj)->tp_name;
-        Py_ssize_t size = Py_TYPE(obj)->tp_basicsize;
-        // printf("name: %s,\tsize: %d, tp_name: %p\n", name, size, 
-            // ((PyTypeObject *) obj)->tp_name);
+#if 0
+    if (!PyType_CheckExact(obj)) {
+        Py_INCREF(obj);
+        return obj;
+    }
+#endif
+    // TODO: deep copy
+    Py_ssize_t size = Py_TYPE(obj)->tp_basicsize;
+    PyObject *new_obj = (PyObject *) malloc(size);
+    if (new_obj == NULL) {
+        PyErr_SetString(PyExc_RuntimeError, "Failed to allocate memory for new object.");
+        return NULL;
+    }
 
-        PyTypeObject *new_obj = (PyTypeObject *) malloc(size);
+    memcpy(new_obj, obj, size);
 
-        if (new_obj == NULL) {
-            PyErr_SetString(PyExc_RuntimeError, "Failed to allocate memory for new object.");
-            return NULL;
-        }
-
-        memcpy(new_obj, obj, size);
-        Py_INCREF(new_obj);
-        Py_XDECREF(obj);
-
-        return (PyObject *) new_obj;
-    } 
-
-
-
-    Py_INCREF(obj);
-    return obj;
+    Py_INCREF(new_obj);
+    return (PyObject *) new_obj;
 }
 
 /* map object ************************************************************/

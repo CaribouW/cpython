@@ -146,12 +146,14 @@ def heapsize(x, memo=None, _nil=[]):
     cls = type(x)
 
     copier = _deepcopy_dispatch.get(cls)
-    if copier:
-        if cls == type:
-            print(x,'<=====>id check:', hex(d), cls, copier)
-            y = copy_to_heap(x, memo)
-        else:
-            y = copier(x, memo)
+    if d >= 0x700000000000:
+        print(x,'<=====>id check:', hex(d), cls, copier)
+        y = copy_to_heap(x, memo)
+    elif copier:
+        # if cls == type:
+            # y = copy_to_heap(x, memo)
+        # else:
+        y = copier(x, memo, heapsize)
     else:
         reductor = dispatch_table.get(cls)
         if reductor:
@@ -190,8 +192,6 @@ def _helper(x, memo, func, args,
         memo[id(x)] = y
     if state is not None:
         state = recur(state)
-        if deep:
-            state = recur(state, memo)
         if hasattr(y, '__setstate__'): # use self-defined setstate
             y.__setstate__(state)
         else:
@@ -223,9 +223,7 @@ def _helper(x, memo, func, args,
         else:
             for key, value in dictiter:
                 y[key] = value
-    d = id(x)
-    if d >= 0x70e5b5edb9c0:
-        print(x,'<_helper> id check:', hex(d))
+    
     return y
 
 
@@ -234,7 +232,6 @@ def deepcopy(x, memo=None, _nil=[]):
 
     See the module's __doc__ string for more info.
     """
-
     if memo is None:
         memo = {}
 
@@ -287,7 +284,7 @@ def deepcopy(x, memo=None, _nil=[]):
 
 _deepcopy_dispatch = d = {}
 
-def _deepcopy_atomic(x, memo):
+def _deepcopy_atomic(x, memo, deepcopy=deepcopy):
     return x
 d[type(None)] = _deepcopy_atomic
 d[type(Ellipsis)] = _deepcopy_atomic

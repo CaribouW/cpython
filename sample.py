@@ -17,6 +17,6 @@ li = np.array([[1, 2, 3], [4, 5, 6]])
 # li = [[1, 2, 3], [4, 5, 6]]
 
 new_ele = li[0][0]
-tID = id(new_ele)
-# Note: please do not include operations (e.g. slicing) in `id_deref`
-print('deref', id_deref(tID, type(new_ele)))
+# pickle.dumps(new_ele)
+copy.heapsize(li)
+

@@ -155,6 +155,8 @@ _PyObject_ArenaMunmap(void *ctx, void *ptr, size_t size)
 }
 
 #else
+
+#endif
 static void *
 _PyObject_ArenaMalloc(void *ctx, size_t size)
 {
@@ -166,8 +168,6 @@ _PyObject_ArenaFree(void *ctx, void *ptr, size_t size)
 {
     free(ptr);
 }
-#endif
-
 #define MALLOC_ALLOC {NULL, _PyMem_RawMalloc, _PyMem_RawCalloc, _PyMem_RawRealloc, _PyMem_RawFree}
 #ifdef WITH_PYMALLOC
 #  define PYMALLOC_ALLOC {NULL, _PyObject_Malloc, _PyObject_Calloc, _PyObject_Realloc, _PyObject_Free}
@@ -378,15 +378,14 @@ _PyMem_GetAllocatorsName(void)
 #undef PYDBGMEM_ALLOC
 #undef PYDBGOBJ_ALLOC
 
-
 static PyObjectArenaAllocator _PyObject_Arena = {NULL,
-#ifdef MS_WINDOWS
-    _PyObject_ArenaVirtualAlloc, _PyObject_ArenaVirtualFree
-#elif defined(ARENAS_USE_MMAP)
-    _PyObject_ArenaMmap, _PyObject_ArenaMunmap
-#else
+// #ifdef MS_WINDOWS
+//     _PyObject_ArenaVirtualAlloc, _PyObject_ArenaVirtualFree
+// #elif defined(ARENAS_USE_MMAP)
+//     _PyObject_ArenaMmap, _PyObject_ArenaMunmap
+// #else
     _PyObject_ArenaMalloc, _PyObject_ArenaFree
-#endif
+// #endif
     };
 
 #ifdef WITH_PYMALLOC
@@ -1270,7 +1269,6 @@ new_arena(void)
         arenaobj->pool_address += POOL_SIZE - excess;
     }
     arenaobj->ntotalpools = arenaobj->nfreepools;
-
     return arenaobj;
 }
 
@@ -1385,6 +1383,7 @@ address_in_range(void *p, poolp pool)
 static void*
 pymalloc_alloc(void *ctx, size_t nbytes)
 {
+
     block *bp;
     poolp pool;
     poolp next;
@@ -1465,6 +1464,8 @@ pymalloc_alloc(void *ctx, size_t nbytes)
 
     /* Try to get a cached free pool. */
     pool = usable_arenas->freepools;
+    
+
     if (pool != NULL) {
         /* Unlink from cached pools. */
         usable_arenas->freepools = pool->nextpool;
@@ -1501,7 +1502,6 @@ pymalloc_alloc(void *ctx, size_t nbytes)
                    (block*)usable_arenas->address +
                        ARENA_SIZE - POOL_SIZE);
         }
-
     init_pool:
         /* Frontlink to used pools. */
         next = usedpools[size + size]; /* == prev */
@@ -1571,18 +1571,22 @@ failed:
     return NULL;
 }
 
+#define USE_MEM_POOL 1
 
 static void *
 _PyObject_Malloc(void *ctx, size_t nbytes)
 {
-    // void* ptr = pymalloc_alloc(ctx, nbytes);
-    // if (ptr != NULL) {
-    //     _Py_AllocatedBlocks++;
-    //     return ptr;
-    // }
+#if USE_MEM_POOL
+    void* ptr = pymalloc_alloc(ctx, nbytes);
+    if (ptr != NULL) {
+        _Py_AllocatedBlocks++;
+        return ptr;
+    }
 
-    // ptr = PyMem_RawMalloc(nbytes);
+    ptr = PyMem_RawMalloc(nbytes);
+#else
     void* ptr = PyMem_RawMalloc(nbytes);
+#endif
     if (ptr != NULL) {
         _Py_AllocatedBlocks++;
     }
@@ -1595,16 +1599,18 @@ _PyObject_Calloc(void *ctx, size_t nelem, size_t elsize)
 {
     assert(elsize == 0 || nelem <= (size_t)PY_SSIZE_T_MAX / elsize);
     size_t nbytes = nelem * elsize;
+#if USE_MEM_POOL
+    void *ptr = pymalloc_alloc(ctx, nbytes);
+    if (ptr != NULL) {
+        memset(ptr, 0, nbytes);
+        _Py_AllocatedBlocks++;
+        return ptr;
+    }
 
-    // void *ptr = pymalloc_alloc(ctx, nbytes);
-    // if (ptr != NULL) {
-    //     memset(ptr, 0, nbytes);
-    //     _Py_AllocatedBlocks++;
-    //     return ptr;
-    // }
-
-    // ptr = PyMem_RawCalloc(nelem, elsize);
+    ptr = PyMem_RawCalloc(nelem, elsize);
+#else
     void* ptr = PyMem_RawCalloc(nelem, elsize);
+#endif
     if (ptr != NULL) {
         _Py_AllocatedBlocks++;
     }
